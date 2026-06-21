@@ -6,6 +6,15 @@ auth.json
 sessions/
 trust.json
 
+# MCP config & cache (mcp.json contains API keys)
+mcp.json
+mcp-cache.json
+mcp-npx-cache.json
+mcp-onboarding.json
+
+# Project-local pi config (restored by pi)
+.pi/
+
 # Installed pi packages (restored via pi install)
 npm/
 git/
