@@ -1,0 +1,11 @@
+# Secrets - never commit
+models.json
+auth.json
+
+# Ephemeral data - session history, trust decisions
+sessions/
+trust.json
+
+# Installed pi packages (restored via pi install)
+npm/
+git/
