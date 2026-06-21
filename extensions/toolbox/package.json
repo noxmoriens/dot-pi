@@ -1,0 +1,25 @@
+{
+  "name": "toolbox",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@earendil-works/pi-ai": "^0.79.9",
+    "@earendil-works/pi-coding-agent": "^0.79.9",
+    "@earendil-works/pi-tui": "^0.79.9",
+    "@node-rs/xxhash": "^1.7.6",
+    "tiktoken": "^1.0.22",
+    "typebox": "^1.1.38",
+    "xxhash-wasm": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5",
+    "vitest": "^3.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "bench": "vitest bench",
+    "test:watch": "vitest"
+  }
+}
