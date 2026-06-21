@@ -1,17 +1,16 @@
-import xxhash from "xxhash-wasm";
+import { xxh64 } from "@node-rs/xxhash";
 
 let _hash: ((s: string) => string) | null = null;
 
-async function getHasher(): Promise<(s: string) => string> {
+function getHasher(): (s: string) => string {
 	if (!_hash) {
-		const api = await xxhash();
-		_hash = (s: string) => api.h64ToString(s);
-	}
+		_hash = (s: string) => xxh64(s).toString();
+		}
 	return _hash;
-}
+	}
 
 /** Strip all leading/trailing whitespace and normalize tabs */
-function contentOnly(line: string): string {
+export function contentOnly(line: string): string {
 	return line.trimEnd().replace(/\t/g, " ").trimStart();
 }
 
@@ -32,9 +31,9 @@ export class HashLineIndex {
 
 	private constructor() {}
 
-	static async build(text: string): Promise<HashLineIndex> {
+	static build(text: string): HashLineIndex {
 		const idx = new HashLineIndex();
-		const hash = await getHasher();
+		const hash = getHasher();
 		idx.hash = hash;
 		const rawLines = text.split("\n");
 		// Remove trailing empty entry from final \n (not real content)
@@ -104,12 +103,12 @@ export class HashLineIndex {
 	 * HashLineIndex. Only hashes the replacement lines — unchanged lines
 	 * are carried over with updated byte offsets.
 	 */
-	async replace(
+	replace(
 		startLine: number,
 		endLine: number,
 		replacementText: string,
-	): Promise<HashLineIndex> {
-		const hash = await getHasher();
+	): HashLineIndex {
+		const hash = getHasher();
 		const oldByteLen = this.getByteRange(startLine, endLine).end -
 			this.getByteRange(startLine, endLine).start;
 		const newByteLen = replacementText.length;

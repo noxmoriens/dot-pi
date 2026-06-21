@@ -84,7 +84,7 @@ export function createEditTool(cwd: string) {
 
 					// Build index lazily on first edit
 					if (index === null) {
-						index = await HashLineIndex.build(content);
+						index = HashLineIndex.build(content);
 					}
 
 					// Find matching line sequence using content hash
@@ -105,7 +105,7 @@ export function createEditTool(cwd: string) {
 							firstChangedLine = originalContent.slice(0, pos).split("\n").length;
 						}
 						// Full index rebuild (fallback path is rare)
-						index = await HashLineIndex.build(content);
+						index = HashLineIndex.build(content);
 						continue;
 					}
 
@@ -124,7 +124,7 @@ export function createEditTool(cwd: string) {
 					}
 
 					// Incrementally update index — only hashes the replacement lines
-					index = await index.replace(matchLine, matchLine + oldLineCount, replacement);
+					index = index.replace(matchLine, matchLine + oldLineCount, replacement);
 				}
 
 				// Generate diff and patch
