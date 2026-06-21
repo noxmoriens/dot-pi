@@ -4,8 +4,8 @@
   "quietStartup": true,
   "enableInstallTelemetry": false,
   "defaultProjectTrust": "always",
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-5-20251101",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-flash",
   "enabledModels": [
     "claude-fable-5",
     "claude-opus-4-8",
@@ -13,10 +13,21 @@
     "claude-opus-4-5-20251101",
     "claude-sonnet-4-6",
     "claude-sonnet-4-5-20250929",
-    "claude-haiku-4-5-20251001"
+    "claude-haiku-4-5-20251001",
+    "deepseek-v4-pro",
+    "deepseek-v4-flash"
   ],
   "defaultThinkingLevel": "high",
-  "packages": [],
+  "packages": [
+    "npm:@juicesharp/rpiv-web-tools",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:pi-mcp-adapter",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@juicesharp/rpiv-btw",
+    "npm:@juicesharp/rpiv-workflow",
+    "npm:@tintinweb/pi-subagents",
+    "npm:@tintinweb/pi-tasks"
+  ],
   "compaction": {
     "enabled": true
   },
