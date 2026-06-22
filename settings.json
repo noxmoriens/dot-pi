@@ -4,8 +4,8 @@
   "quietStartup": true,
   "enableInstallTelemetry": false,
   "defaultProjectTrust": "always",
-  "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-flash",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-4-8",
   "enabledModels": [
     "claude-fable-5",
     "claude-opus-4-8",

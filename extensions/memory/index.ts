@@ -5,18 +5,18 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, dirname, basename } from "node:path";
 
-const GLOBAL_PATH = join(homedir(), ".pi", "agent", "MEMORY.md");
+export const GLOBAL_PATH = join(homedir(), ".pi", "agent", "MEMORY.md");
 
-function projectPath(cwd: string): string {
+export function projectPath(cwd: string): string {
   return join(cwd, "MEMORY.md");
 }
 
-interface MemoryDoc {
+export interface MemoryDoc {
   frontmatter: string;
   sections: Record<string, string[]>;
 }
 
-function parseMemory(raw: string): MemoryDoc {
+export function parseMemory(raw: string): MemoryDoc {
   const sections: Record<string, string[]> = {};
   let frontmatter = "";
   let body = raw;
@@ -27,7 +27,11 @@ function parseMemory(raw: string): MemoryDoc {
     body = raw.slice(fm[0].length);
   }
 
-  const parts = body.split(/(?=^# )/m);
+  // Capture all headings — standard (Rules/Facts/Recents) and non-standard.
+  // Non-standard sections are persisted by readMemory/renderMemory but not
+    // validated by remember/forget (they only touch VALID_SECTIONS). This
+    // preserves user-added sections if they hand-edit MEMORY.md.
+      const parts = body.split(/(?=^# )/m);
   for (const part of parts) {
     const m = part.match(/^# (.+)$/m);
     if (m) {
@@ -36,14 +40,14 @@ function parseMemory(raw: string): MemoryDoc {
         .split("\n")
         .filter((l) => l.trimStart().startsWith("- "))
         .map((l) => l.trimStart().slice(2).trim());
-      sections[name] = items;
+      sections[name] = sections[name] ? [...sections[name], ...items] : items;
     }
   }
 
   return { frontmatter, sections };
 }
 
-function renderMemory(doc: MemoryDoc): string {
+export function renderMemory(doc: MemoryDoc): string {
   const out: string[] = [];
 
   if (doc.frontmatter) {
@@ -70,10 +74,12 @@ function renderMemory(doc: MemoryDoc): string {
   return out.join("\n");
 }
 
-async function readMemory(path: string): Promise<MemoryDoc> {
+export async function readMemory(path: string): Promise<MemoryDoc> {
   try {
     return parseMemory(await readFile(path, "utf-8"));
   } catch {
+    // Graceful fallback for missing/non-readable files.
+      // Returns empty doc — caller must handle non-existence separately if needed.
     return {
       frontmatter: "",
       sections: { Rules: [], Facts: [], Recents: [] },
@@ -81,22 +87,22 @@ async function readMemory(path: string): Promise<MemoryDoc> {
   }
 }
 
-async function writeMemory(path: string, doc: MemoryDoc): Promise<void> {
+export async function writeMemory(path: string, doc: MemoryDoc): Promise<void> {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, renderMemory(doc), "utf-8");
 }
 
-const VALID_SECTIONS = ["Rules", "Facts", "Recents"] as const;
-type Section = (typeof VALID_SECTIONS)[number];
+export const VALID_SECTIONS = ["Rules", "Facts", "Recents"] as const;
+export type Section = (typeof VALID_SECTIONS)[number];
 
-function formatDoc(label: string, doc: MemoryDoc): string {
+export function formatDoc(label: string, doc: MemoryDoc): string {
   const nonEmpty = VALID_SECTIONS.filter((s) => (doc.sections[s]?.length ?? 0) > 0);
   if (nonEmpty.length === 0) return "";
 
   const lines: string[] = [`--- ${label} ---`];
   for (const s of nonEmpty) {
     lines.push(`  ${s}:`);
-    for (const item of doc.sections[s]) {
+    for (const item of doc.sections[s] ?? []) {
       lines.push(`    - ${item}`);
     }
   }
