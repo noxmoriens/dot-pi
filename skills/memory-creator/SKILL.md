@@ -25,7 +25,7 @@ Do NOT use when:
 
 ```markdown
 ---
-version: osiris-mem-v1
+version: 0.1.0
 format:
  - Rules
  - Facts

@@ -21,12 +21,11 @@
   "packages": [
     "npm:@juicesharp/rpiv-web-tools",
     "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:pi-mcp-adapter",
-    "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-btw",
     "npm:@juicesharp/rpiv-workflow",
     "npm:@tintinweb/pi-subagents",
-    "npm:@tintinweb/pi-tasks"
+    "npm:@tintinweb/pi-tasks",
+    "npm:@juicesharp/rpiv-advisor"
   ],
   "compaction": {
     "enabled": true

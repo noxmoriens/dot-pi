@@ -51,14 +51,25 @@ Break the work into tracked tasks and organize them under the current **Sprint**
 
 #### Step 5 — Execute
 
-Work through each task in order. For each task:
+Work through each task in order. For each task, follow the Dirac cycle — reason first, prove before implement, implement with elegance, then integrate. The token cost is acceptable: code quality and correctness are the priority.
 
-1. Read relevant files if not already loaded.
-2. Write or edit code — for each piece, run the decision stack: **MUST → EXIST → BREAK → TIGHT → SHIP** (defined in `APPEND_SYSTEM.md`).
-3. Run linters and type checks (`bun run lint`, `bun run format`, `cargo clippy`, etc.).
-4. Commit with conventional commits and signed messages.
+**Sub-phase 1 — Analyze & Hypothesize**
 
-**Do not move to the next task until the current one passes all checks.**
+Do not write code. Analyze the problem domain, trace edge cases mentally, reason from first principles. Formulate a hypothesis about the correct solution — data structures, control flow, interfaces, failure modes. The hypothesis is a brief written statement, not code. Present it to the user.
+
+**Sub-phase 2 — Prove via Unit Test**
+
+Write unit tests that encode the hypothesis. Tests are the proof: expected behavior, edge cases, invariants before implementation exists. Run them — they must fail (nothing to test yet). Present the test plan and results to the user. Do not proceed until the user confirms the tests capture the requirements correctly.
+
+**Sub-phase 3 — Elegant Code Implementation**
+
+Implement the solution. The tests already define correctness — the goal now is elegance: minimal, correct, readable code. Run the decision stack for every piece: **MUST → EXIST → BREAK → TIGHT → SHIP** (defined in `APPEND_SYSTEM.md`). All tests must pass. Run linters and type checks.
+
+**Sub-phase 4 — Wire-Up**
+
+The implementation is proven in isolation. Now wire it into the existing system — connect interfaces, integrate with existing modules, update callers. Re-run all tests. Do not move to the next task until the current one passes all checks.
+
+**Commit** with conventional commits and signed messages.
 
 #### Step 6 — Self Code Review
 

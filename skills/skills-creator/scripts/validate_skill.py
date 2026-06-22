@@ -5,6 +5,8 @@ Validate pi-osiris skills against the standard defined in skills-creator.
 Usage:
     python scripts/validate_skill.py                    # validate all skills
     python scripts/validate_skill.py path/to/skill      # validate one skill directory
+    python scripts/validate_skill.py -v                 # verbose with all checks per skill
+    python scripts/validate_skill.py -v --summary-only  # compact summary only
 
 Checks:
   - Frontmatter exists with name and description
@@ -40,7 +42,6 @@ def parse_frontmatter(content: str):
     """
     lines = content.split('\n')
 
-    # Find frontmatter boundaries
     if not lines or lines[0].strip() != '---':
         return None
 
@@ -55,7 +56,6 @@ def parse_frontmatter(content: str):
 
     fm_lines = lines[1:end_idx]
 
-    # Simple YAML parser for flat keys with > block scalars
     result = {}
     current_key = None
     in_block_scalar = False
@@ -63,10 +63,8 @@ def parse_frontmatter(content: str):
     block_indent = 0
 
     for line in fm_lines:
-        # Check if this is a new key-value pair
         key_match = re.match(r'^(\w[\w-]*):\s*(.*)', line)
         if key_match and not (in_block_scalar and line[:block_indent + 1].strip() == ''):
-            # Save previous block scalar if any
             if current_key and in_block_scalar and block_lines:
                 result[current_key] = '\n\n'.join(
                     ' '.join(para.split()) for para in
@@ -79,38 +77,31 @@ def parse_frontmatter(content: str):
             value = key_match.group(2)
 
             if value.strip() == '>':
-                # Start of folded block scalar
                 current_key = key
                 in_block_scalar = True
                 block_lines = []
-                # Determine indent level from next line
                 block_indent = None
             elif value.strip() == '':
-                # Empty value, might be followed by block scalar
                 current_key = key
                 in_block_scalar = True
                 block_lines = []
                 block_indent = None
             else:
-                # Inline value
                 result[key] = value.strip()
                 current_key = None
                 in_block_scalar = False
             continue
 
         if in_block_scalar:
-            # Determine indent from first content line
             if block_indent is None and line.strip():
                 block_indent = len(line) - len(line.lstrip())
 
-            # Check if this line is part of the block scalar
             stripped = line.rstrip()
             if stripped == '' or (block_indent is not None and
                                   (len(line) - len(line.lstrip()) >= block_indent or stripped == '')):
                 block_lines.append(stripped)
                 continue
             else:
-                # End of block scalar
                 if block_lines:
                     result[current_key] = '\n\n'.join(
                         ' '.join(para.split()) for para in
@@ -122,7 +113,6 @@ def parse_frontmatter(content: str):
                 current_key = None
                 continue
 
-    # Save last block scalar
     if current_key and in_block_scalar and block_lines:
         result[current_key] = '\n\n'.join(
             ' '.join(para.split()) for para in
@@ -179,13 +169,56 @@ def count_bullets_after(lines: list, section_idx: int) -> int:
     return count
 
 
+def get_sections(lines: list) -> list:
+    """Extract all markdown headings with level and text."""
+    sections = []
+    for i, line in enumerate(lines):
+        m = re.match(r'^(#+)\s+(.+)$', line)
+        if m:
+            level = len(m.group(1))
+            text = m.group(2).strip()
+            sections.append({"level": level, "text": text, "line": i + 1})
+    return sections
+
+
+def count_words_in_body(body: str) -> int:
+    """Count words in markdown body, excluding code fences."""
+    lines = body.split('\n')
+    in_fence = False
+    words = 0
+    for line in lines:
+        if line.strip().startswith('```'):
+            in_fence = not in_fence
+            continue
+        if not in_fence and line.strip():
+            words += len(line.split())
+    return words
+
+
+def count_code_blocks(body: str) -> int:
+    """Count number of code fences in body."""
+    return body.count('```') // 2
+
+
+def count_bullet_items(body: str) -> int:
+    """Count bullet list items (lines starting with - or *)."""
+    count = 0
+    for line in body.split('\n'):
+        stripped = line.strip()
+        if stripped.startswith('- ') or stripped.startswith('* '):
+            count += 1
+    return count
+
+
 def validate_skill(skill_dir: str, verbose: bool = False) -> bool:
     """Validate a single skill directory. Returns True if valid."""
     skill_path = Path(skill_dir)
     skill_md = skill_path / 'SKILL.md'
+    dir_name = skill_path.name
+    checks = []
 
     if not skill_md.exists():
-        print(f"FAIL  {skill_dir}")
+        print(f"FAIL  {dir_name}")
         print(f"      SKILL.md not found at {skill_md}")
         return False
 
@@ -194,115 +227,150 @@ def validate_skill(skill_dir: str, verbose: bool = False) -> bool:
     body = get_body(content)
     body_lines = body.split('\n')
 
-    dir_name = skill_path.name
     all_pass = True
-    errors = []
 
-    # Parse frontmatter
+    # --- Frontmatter checks ---
     fm = parse_frontmatter(content)
 
     if fm is None:
-        errors.append("No YAML frontmatter found (must start and end with '---')")
+        checks.append((False, "Frontmatter", "No YAML frontmatter found"))
         all_pass = False
+        fm = {}
     else:
-        # Check name exists
-        name = fm.get('name')
-        if not name:
-            errors.append("Frontmatter missing 'name' field")
-            all_pass = False
-        elif name != dir_name:
-            errors.append(f"Frontmatter name '{name}' does not match directory name '{dir_name}'")
-            all_pass = False
+        checks.append((True, "Frontmatter", "YAML frontmatter present"))
 
-        # Check description exists
-        desc = fm.get('description')
-        if not desc:
-            errors.append("Frontmatter missing 'description' field")
+        name_fm = fm.get('name', '')
+        if not name_fm:
+            checks.append((False, "FM: name", "Missing 'name' field"))
+            all_pass = False
+        elif name_fm != dir_name:
+            checks.append((False, "FM: name", f"'{name_fm}' != directory '{dir_name}'"))
             all_pass = False
         else:
-            # Check description uses > block scalar
-            # Find the raw frontmatter to check for >
+            checks.append((True, "FM: name", f"'{name_fm}' matches directory"))
+
+        desc = fm.get('description', '')
+        if not desc:
+            checks.append((False, "FM: description", "Missing 'description' field"))
+            all_pass = False
+        else:
             fm_raw_start = content.find('---') + 3
             fm_raw_end = content.find('---', fm_raw_start)
             fm_raw = content[fm_raw_start:fm_raw_end]
 
-            # Find description line
             desc_line_match = re.search(r'^description:\s*(.+)$', fm_raw, re.MULTILINE)
             if desc_line_match:
                 desc_value = desc_line_match.group(1).strip()
                 if desc_value != '>':
-                    errors.append(f"description must use '>' block scalar, got '{desc_value}'")
+                    checks.append((False, "FM: desc scalar", f"'{desc_value}' — should use '>' block scalar"))
                     all_pass = False
-            elif 'description:' not in fm_raw:
-                errors.append("description field missing in frontmatter")
+                else:
+                    checks.append((True, "FM: desc scalar", "uses '>' block scalar"))
+
+            if desc.startswith("You must use this skill when"):
+                checks.append((True, "FM: desc prefix", "starts with 'You must use this skill when'"))
+            else:
+                triggers = desc[:70]
+                checks.append((False, "FM: desc prefix", f"'{triggers}...' — should start with 'You must use this skill when'"))
                 all_pass = False
 
-            # Check description starts with required prefix
-            if not desc.startswith("You must use this skill when"):
-                errors.append("description must start with 'You must use this skill when'")
-                all_pass = False
-
-            # Token count
             tokens = estimate_tokens(desc)
-            if tokens < 25 or tokens > 95:
-                errors.append(f"description token count is {tokens} (expected ~40-90)")
+            if 25 <= tokens <= 95:
+                checks.append((True, "FM: desc tokens", f"{tokens} tokens (range 25-95)"))
+            else:
+                checks.append((False, "FM: desc tokens", f"{tokens} tokens (expected 25-95)"))
                 all_pass = False
-            elif verbose:
-                print(f"      description tokens: {tokens}")
 
-            # Check for backticks in description
             if '`' in desc:
-                errors.append("description contains backticks (`) — avoid inline code in triggering descriptions")
+                checks.append((False, "FM: desc backticks", "contains backtick — avoid inline code in triggering instructions"))
                 all_pass = False
+            else:
+                checks.append((True, "FM: desc backticks", "no backticks"))
 
-    # Body checks
-    # Check for tables (| separator lines)
+    # --- Body checks ---
+    # Tables
     table_pattern = re.compile(r'^\|.+\|$')
+    found_table = False
     for i, line in enumerate(body_lines):
         stripped = line.strip()
         if table_pattern.match(stripped) and not is_inside_code_fence(body_lines, i):
-            # Check if it's a real table (has --- separator or multiple |)
             if '---' in stripped or stripped.count('|') >= 3:
-                errors.append(f"Table detected at line {i + 1 + (content[:i].count(chr(10)))}: '{stripped[:60]}' — use bullet lists instead")
+                checks.append((False, "Body: tables", f"table near line {i + 1} '{stripped[:50]}' — use bullet lists"))
                 all_pass = False
+                found_table = True
                 break
+    if not found_table:
+        checks.append((True, "Body: tables", "no markdown tables"))
 
-    # Check for **bold** outside code fences
+    # Bold outside code fences
     bold_pattern = re.compile(r'\*\*[^*]+\*\*')
+    found_bold = False
     for i, line in enumerate(body_lines):
         if bold_pattern.search(line) and not is_inside_code_fence(body_lines, i):
-            errors.append(f"Bold (**) detected at line ~{i + 1 + len(content.split(chr(10))) - len(body_lines)}: remove **, use headers instead")
+            checks.append((False, "Body: bold (**)", f"near line {i + 1}: '{line.strip()[:60]}' — use headers instead"))
             all_pass = False
+            found_bold = True
             break
+    if not found_bold:
+        checks.append((True, "Body: bold (**)", "no bold outside code fences"))
 
-    # Check line count
-    if len(lines) > 500:
-        errors.append(f"SKILL.md has {len(lines)} lines (max 500)")
+    # Line count
+    line_count = len(lines)
+    if line_count <= 500:
+        checks.append((True, "Body: line count", f"{line_count} lines (max 500)"))
+    else:
+        checks.append((False, "Body: line count", f"{line_count} lines (max 500)"))
         all_pass = False
 
-    # Check Gotchas section
+    # Gotchas section
     gotcha_idx = find_section_containing(lines, 'Gotchas')
     if gotcha_idx == -1:
-        errors.append("No 'Gotchas' section found — required for capturing agent failure points")
+        checks.append((False, "Body: Gotchas", "section not found — required for capturing agent failure points"))
         all_pass = False
     else:
         bullet_count = count_bullets_after(lines, gotcha_idx)
-        if bullet_count < 1:
-            errors.append("Gotchas section must have at least 1 bullet item")
+        if bullet_count >= 1:
+            checks.append((True, "Body: Gotchas", f"present with {bullet_count} bullet(s)"))
+        else:
+            checks.append((False, "Body: Gotchas", "section has no bullet items (need >= 1)"))
             all_pass = False
 
-    # Report
-    if all_pass:
-        print(f"PASS  {dir_name}")
-        if verbose:
-            for e in errors:
-                print(f"      {e}")
-        return True
-    else:
-        print(f"FAIL  {dir_name}")
-        for e in errors:
-            print(f"      {e}")
-        return False
+    # --- Structural analysis (informational, not pass/fail) ---
+    sections = get_sections(lines)
+    heading_count = len(sections)
+    depth_counts = {}
+    for s in sections:
+        lvl = s['level']
+        depth_counts[lvl] = depth_counts.get(lvl, 0) + 1
+    section_summary = ', '.join(f"h{lvl}={n}" for lvl, n in sorted(depth_counts.items()))
+
+    word_count = count_words_in_body(body)
+    code_blocks = count_code_blocks(body)
+    bullet_items = count_bullet_items(body)
+    fm_fields = ', '.join(sorted(fm.keys())) if fm else '(none)'
+
+    # --- Report ---
+    prefix = "PASS" if all_pass else "FAIL"
+    out_lines = []
+    out_lines.append(f"{prefix}  {dir_name}")
+    if verbose:
+        h = heading_count
+        out_lines.append(f"  Structure: {h} headings ({section_summary}) | {line_count} lines | {word_count} body words | {code_blocks} code blocks | {bullet_items} bullet items")
+        out_lines.append(f"  FM fields: {fm_fields}")
+        if fm and fm.get('description'):
+            d = fm['description']
+            t = estimate_tokens(d)
+            truncated = d[:120]
+            if len(d) > 120:
+                truncated += '...'
+            out_lines.append(f"  Description: {truncated} [{t} tokens]")
+        for status, label, detail in checks:
+            mark = "PASS" if status else "FAIL"
+            out_lines.append(f"  [{mark}] {label}")
+            if detail:
+                out_lines.append(f"        {detail}")
+    print('\n'.join(out_lines))
+    return all_pass
 
 
 def find_skills_dirs(base_dir: str) -> list:
@@ -328,7 +396,7 @@ def main():
     )
     parser.add_argument(
         '-v', '--verbose', action='store_true',
-        help="Show detailed output including token counts"
+        help="Show detailed output including all checks per skill"
     )
     parser.add_argument(
         '--summary-only', action='store_true',
@@ -337,15 +405,12 @@ def main():
 
     args = parser.parse_args()
 
-    # Determine target
     target = args.target
     if not target:
-        # Default: script's grandparent (skills/) or parent (skills-creator/)
         script_dir = Path(__file__).resolve().parent
-        parent = script_dir.parent  # skills-creator/
-        grandparent = parent.parent  # skills/
+        parent = script_dir.parent
+        grandparent = parent.parent
 
-        # Check if we're in skills-creator, look at skills/
         if grandparent.name == 'skills' and grandparent.is_dir():
             target = str(grandparent)
         else:
@@ -353,12 +418,9 @@ def main():
 
     target_path = Path(target)
 
-    # Collect skills to validate
     if target_path.is_dir() and (target_path / 'SKILL.md').exists():
-        # Single skill directory
         skills = [str(target_path)]
     elif target_path.is_dir():
-        # Base directory containing skill dirs
         skills = find_skills_dirs(target)
     else:
         print(f"Error: {target} not found")
@@ -372,13 +434,11 @@ def main():
         print(f"Validating {len(skills)} skill(s) in {target_path}")
         print()
 
-    # Validate each skill
     results = []
     for skill_dir in skills:
         result = validate_skill(skill_dir, verbose=args.verbose)
         results.append(result)
 
-    # Summary
     passed = sum(results)
     failed = len(results) - passed
     print()

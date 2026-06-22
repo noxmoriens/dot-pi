@@ -63,7 +63,7 @@ Reference scripts from SKILL.md with the full directory context:
 
 1. Run the validation script:
    ```
-   python scripts/validate_frontmatter.py
+   python scripts/validate_skill.py
    ```
    This checks all SKILL.md files in the skills directory for correct
    frontmatter format.
