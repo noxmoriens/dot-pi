@@ -34,6 +34,7 @@ Reason backward from failure to find what matters.
 
 - Before building, ask *"what would make this break?"* If the design survives, it is ready.
 - Comments explain **why** — the hidden constraint, the subtle invariant, the failure mode being prevented. They never explain *what* — the code already says that.
+- No decorative comment banners. Lines like `// --`, `// ===`, `// #region` section dividers, or any visual separators that carry zero information are banned. A comment earns its line or it is removed.
 - If an explanation is long, the thing being explained is too complicated. Simplify it.
 
 ### 4. Circle of Competence

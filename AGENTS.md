@@ -78,7 +78,7 @@ After all tasks are complete, audit everything you just wrote. Be critical:
 - Does the code meet the requirements from Step 2?
 - Are there breaking changes, edge cases, or regressions?
 - Does the code follow project conventions (error handling, naming, structure)?
-- Are there `TODO`, `FIXME`, or debug artifacts left behind?
+- Are there `TODO`, `FIXME`, debug artifacts, or decorative comment banners left behind?
 
 > **Critical: No code changes during this phase.** You are reviewing only. If you find bugs, issues, or improvements — log them. Do not fix them.
 
