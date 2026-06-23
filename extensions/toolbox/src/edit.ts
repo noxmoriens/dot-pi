@@ -80,7 +80,7 @@ export function createEditTool(cwd: string) {
 					const { oldText, newText } = params.edits[i]!;
 
 					if (!oldText) throw new Error(`Edit ${i}: oldText is empty`);
-					if (!newText) throw new Error(`Edit ${i}: newText is empty`);
+					// newText may be empty (deletion) — handled by reindent/replace below
 
 					// Build index lazily on first edit
 					if (index === null) {
@@ -109,22 +109,34 @@ export function createEditTool(cwd: string) {
 						continue;
 					}
 
+					// Strip trailing empty from \n-terminated oldText (matches findSequence)
+					const oldTextLines = oldText.split("\n");
+					while (oldTextLines.length > 1 && oldTextLines[oldTextLines.length - 1] === "") {
+ oldTextLines.pop();
+					}
+					const oldLineCount = oldTextLines.length;
+
 					// Get byte range of matched lines
-					const oldLineCount = oldText.split("\n").length;
 					const range = index.getByteRange(matchLine, matchLine + oldLineCount);
 
 					// Re-indent the replacement to match original file style
-					const replacement = index.reindent(newText, matchLine);
+						const replacement = index.reindent(newText, matchLine);
 
-					// Apply via string slice+concat
-					content = content.slice(0, range.start) + replacement + content.slice(range.end);
+// For deletions, consume the trailing \n of the last matched line
+					let extraByteLen = 0;
+					if (newText === "" && range.end < content.length && content.charCodeAt(range.end) === 0x0A) {
+				 extraByteLen = 1;
+}
 
-					if (firstChangedLine === undefined) {
-						firstChangedLine = originalContent.slice(0, range.start).split("\n").length;
-					}
+				// Apply via string slice+concat (including optional extra \n for deletion)
+				content = content.slice(0, range.start) + replacement + content.slice(range.end + extraByteLen);
 
-					// Incrementally update index — only hashes the replacement lines
-					index = index.replace(matchLine, matchLine + oldLineCount, replacement);
+if (firstChangedLine === undefined) {
+				 firstChangedLine = originalContent.slice(0, range.start).split("\n").length;
+				}
+
+				// Incrementally update index — only hashes the replacement lines
+				index = index.replace(matchLine, matchLine + oldLineCount, replacement, extraByteLen);
 				}
 
 				// Generate diff and patch

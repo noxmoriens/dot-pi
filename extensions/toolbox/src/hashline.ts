@@ -59,9 +59,13 @@ export class HashLineIndex {
 
 	/** Find a sequence of oldText lines by content hash. Returns the starting line index, or -1. */
 	findSequence(oldText: string): number {
-		if (!this.hash) return -1;
-		const oldLines = oldText.split("\n");
-		const oldHashes = oldLines.map((l) => this.hash!(contentOnly(l)));
+		 if (!this.hash) return -1;
+		 const oldLines = oldText.split("\n");
+		 // Strip trailing empty entry from \n-terminated oldText (matches build() convention)
+ while (oldLines.length > 1 && oldLines[oldLines.length - 1] === "") {
+		  oldLines.pop();
+			 }
+			 const oldHashes = oldLines.map((l) => this.hash!(contentOnly(l)));
 
 		for (let i = 0; i <= this.lines.length - oldHashes.length; i++) {
 			let match = true;
@@ -85,46 +89,53 @@ export class HashLineIndex {
 
 	/**
 	 * Given an oldText match, compute the replacement text with proper indentation
-	 * matching the original file's style.
-	 */
-	reindent(replacement: string, startLine: number): string {
+	 * matching the original file's style. Preserves relative indentation within
+	 * multi-line replacements (e.g., sub-items nested below the first line).
+	*/
+		reindent(replacement: string, startLine: number): string {
+		if (replacement === "") return "";
 		const newLines = replacement.split("\n");
-		return newLines
-			.map((line, i) => {
+			const baseIndentLen = getIndent(newLines[0]!).length;
+				return newLines
+				.map((line, i) => {
 				const orig = this.lines[startLine + i];
-				if (!orig || line.trim().length === 0) return line;
-				return orig.indent + line.trimStart();
-			})
-			.join("\n");
-	}
+			if (!orig || line.trim().length === 0) return line;
+			const relativeIndent = getIndent(line).length - baseIndentLen;
+	return orig.indent + " ".repeat(Math.max(0, relativeIndent)) + line.trimStart();
+})
+	.join("\n");
+	 }
 
 	/**
-	 * Replace lines [startLine, endLine) with new text, returning a new
-	 * HashLineIndex. Only hashes the replacement lines — unchanged lines
-	 * are carried over with updated byte offsets.
-	 */
+	  * Replace lines [startLine, endLine) with new text, returning a new
+	  * HashLineIndex. Only hashes the replacement lines — unchanged lines
+	  * are carried over with updated byte offsets.
+	  */
 	replace(
-		startLine: number,
-		endLine: number,
-		replacementText: string,
-	): HashLineIndex {
-		const hash = getHasher();
-		const oldByteLen = this.getByteRange(startLine, endLine).end -
-			this.getByteRange(startLine, endLine).start;
-		const newByteLen = replacementText.length;
-		const delta = newByteLen - oldByteLen;
+		 startLine: number,
+		 endLine: number,
+		 replacementText: string,
+	 extraByteLen: number = 0,
+		): HashLineIndex {
+		 const hash = getHasher();
+			 const oldByteLen = this.getByteRange(startLine, endLine).end -
+		  this.getByteRange(startLine, endLine).start;
+		 const newByteLen = replacementText.length;
+ const delta = newByteLen - (oldByteLen + extraByteLen);
 
-		const newLines = replacementText.split("\n");
 		const newEntries: HashLine[] = [];
+		if (replacementText !== "") {
+		const newLines = replacementText.split("\n");
 		let runningOffset = this.lines[startLine]!.byteOffset;
-		for (const line of newLines) {
-			newEntries.push({
+			for (const line of newLines) {
+				newEntries.push({
 				contentHash: hash(contentOnly(line)),
 				byteOffset: runningOffset,
 				length: line.length,
-				indent: getIndent(line),
+			indent: getIndent(line),
 			});
-			runningOffset += line.length + 1;
+		runningOffset += line.length + 1;
+}
 		}
 
 		const idx = new HashLineIndex();

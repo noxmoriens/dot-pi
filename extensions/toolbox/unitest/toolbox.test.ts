@@ -70,10 +70,11 @@ describe("Read tool", () => {
 	});
 
 	it("truncates at line limit", async () => {
-		const result = await callRead({ path: largeFile });
-		const text = result.content[0]!.text;
-		expect(text).toContain("[Showing 2000 lines");
-	});
+		 const result = await callRead({ path: largeFile });
+		 const text = result.content[0]!.text;
+		 expect(text).toContain("of 3000");
+	 expect(text).toContain("Use offset=");
+});
 
 	it("caches content after read", async () => {
 		const f = tmpFile();
@@ -223,14 +224,128 @@ describe("Edit tool — error cases", () => {
 			).rejects.toThrow(/oldText is empty/);
 		});
 
-it("throws on empty newText", async () => {
+it("deletes content with empty newText (single line)", async () => {
 	const f = tmpFile();
-		writeFileSync(f, "hello");
+		writeFileSync(f, "line1\nline2\nline3\n");
 		clearCache();
-			await expect(
-				callEdit({ path: f, edits: [{ oldText: "hello", newText: "" }] }),
-				).rejects.toThrow(/newText is empty/);
-			});
+
+				const result = await callEdit({
+				path: f,
+			edits: [{ oldText: "line2\n", newText: "" }],
+});
+	expect(result.content[0]!.text).toMatch(/Applied 1 edit/);
+		expect(readFileSync(f, "utf-8")).toBe("line1\nline3\n");
+		});
+
+				it("deletes last line with empty newText", async () => {
+				const f = tmpFile();
+			writeFileSync(f, "line1\nline2\n");
+		clearCache();
+
+const result = await callEdit({
+path: f,
+edits: [{ oldText: "line2\n", newText: "" }],
+	});
+		expect(result.content[0]!.text).toMatch(/Applied 1 edit/);
+		expect(readFileSync(f, "utf-8")).toBe("line1\n");
+		});
+
+		it("deletes first line with empty newText", async () => {
+		const f = tmpFile();
+			writeFileSync(f, "line1\nline2\n");
+			clearCache();
+
+		const result = await callEdit({
+		path: f,
+	edits: [{ oldText: "line1\n", newText: "" }],
+});
+	expect(result.content[0]!.text).toMatch(/Applied 1 edit/);
+		expect(readFileSync(f, "utf-8")).toBe("line2\n");
+		});
+
+it("deletes all content", async () => {
+		const f = tmpFile();
+			writeFileSync(f, "line1\nline2\n");
+			clearCache();
+
+		const result = await callEdit({
+		path: f,
+	edits: [{ oldText: "line1\nline2\n", newText: "" }],
+});
+expect(result.content[0]!.text).toMatch(/Applied 1 edit/);
+expect(readFileSync(f, "utf-8")).toBe("");
+	});
+
+		it("deletes inline content (not line-level)", async () => {
+		const f = tmpFile();
+writeFileSync(f, "const x = 1;\n");
+		clearCache();
+
+			const result = await callEdit({
+		path: f,
+		edits: [{ oldText: " = 1", newText: "" }],
+		});
+		expect(result.content[0]!.text).toMatch(/Applied 1 edit/);
+		expect(readFileSync(f, "utf-8")).toBe("const x;\n");
+	});
+
+it("deletes multiple consecutive lines", async () => {
+const f = tmpFile();
+	writeFileSync(f, "a\nb\nc\nd\ne\n");
+		clearCache();
+
+		const result = await callEdit({
+			path: f,
+			edits: [{ oldText: "b\nc\nd\n", newText: "" }],
+		});
+		expect(result.content[0]!.text).toMatch(/Applied 1 edit/);
+		expect(readFileSync(f, "utf-8")).toBe("a\ne\n");
+	});
+
+	it("deletion in multi-edit (delete + modify in one call)", async () => {
+		const f = tmpFile();
+		writeFileSync(f, "keep1\ndeleteme\nkeep2\n");
+		clearCache();
+
+		const result = await callEdit({
+			path: f,
+			edits: [
+				{ oldText: "deleteme\n", newText: "" },
+				{ oldText: "keep2", newText: "modified" },
+			],
+		});
+		expect(result.content[0]!.text).toMatch(/Applied 2 edits/);
+		expect(readFileSync(f, "utf-8")).toBe("keep1\nmodified\n");
+	});
+
+	it("deletion produces correct diff output", async () => {
+		const f = tmpFile();
+		writeFileSync(f, "keep\ndelete\nkeep\n");
+		clearCache();
+
+		const result = await callEdit({
+			path: f,
+			edits: [{ oldText: "delete\n", newText: "" }],
+		});
+		expect(result.details).toBeDefined();
+		expect(result.details!.diff).toMatch(/-\d+ delete/);
+		expect(result.details!.patch).toContain("@@");
+	});
+
+	it("deletion preserves unchanged content before and after", async () => {
+		const f = tmpFile();
+		writeFileSync(f, "before\n\ttarget\nafter\n");
+		clearCache();
+
+		const result = await callEdit({
+			path: f,
+			edits: [{ oldText: "\ttarget\n", newText: "" }],
+		});
+		expect(result.content[0]!.text).toMatch(/Applied 1 edit/);
+		const content = readFileSync(f, "utf-8");
+		expect(content).toContain("before\nafter");
+		expect(content).not.toContain("target");
+	});
 
 	it("throws on no edits", async () => {
 		clearCache();

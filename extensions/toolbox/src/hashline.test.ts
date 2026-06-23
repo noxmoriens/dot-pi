@@ -160,7 +160,37 @@ expect(range.end).toBe(11);
 			const result = idx.reindent("    new", 0);
 			expect(result).toBe("  new");
 		});
-	});
+
+it("returns empty string for empty replacement", () => {
+	const idx = HashLineIndex.build("  foo\n  bar");
+		expect(idx.reindent("", 0)).toBe("");
+			expect(idx.reindent("", 1)).toBe("");
+			});
+
+it("preserves relative indentation for sub-items", () => {
+	const idx = HashLineIndex.build("- Point 1\n- Point 2\n- Point 3");
+		const result = idx.reindent("- Point 2\n  - Sub A\n  - Sub B", 1);
+			expect(result).toBe("- Point 2\n  - Sub A\n  - Sub B");
+			});
+
+			it("preserves multi-level relative indentation", () => {
+			const idx = HashLineIndex.build("- Item\n- Other");
+			const result = idx.reindent("- Item\n  - Sub\n      - Deep", 0);
+		expect(result).toBe("- Item\n  - Sub\n      - Deep");
+});
+
+			it("existing tests still pass with indented replacement lines", () => {
+			// When replacement has consistent indent, result matches original indent
+			const idx = HashLineIndex.build("  foo\n  bar");
+			expect(idx.reindent("    new", 0)).toBe("  new");
+			});
+
+		it("preserves relative indent even when orig has tabs", () => {
+const idx = HashLineIndex.build("\tfoo\n\tbar");
+		const result = idx.reindent("foo\n  sub", 0);
+			expect(result).toBe("\tfoo\n\t  sub");
+			});
+			});
 
 	describe("replace", () => {
 		it("returns new index with replaced lines", () => {
@@ -204,5 +234,49 @@ expect(range.end).toBe(11);
 			expect(idx.findSequence("x")).toBe(0);
 			expect(idx.findSequence("y")).toBe(2);
 		});
+
+it("replaces with empty string (deletion) — produces no phantom line", () => {
+		const idx = HashLineIndex.build("a\nb\nc");
+		const newIdx = idx.replace(1, 2, ""); // delete "b"
+		expect(newIdx.length).toBe(2); // "a", "c"
+		expect(newIdx.findSequence("a")).toBe(0);
+		expect(newIdx.findSequence("c")).toBe(1);
+		expect(newIdx.findSequence("b")).toBe(-1);
 	});
+
+	it("empty replacement followed by another edit works", () => {
+		let idx = HashLineIndex.build("x\ny\nz");
+		idx = idx.replace(1, 2, ""); // delete "y"
+		idx = idx.replace(1, 2, "w"); // replace "z" with "w"
+		expect(idx.length).toBe(2);
+		expect(idx.findSequence("w")).toBe(1);
+		expect(idx.findSequence("y")).toBe(-1);
+		expect(idx.findSequence("z")).toBe(-1);
+	});
+
+	it("empty replacement at start of index", () => {
+		const idx = HashLineIndex.build("a\nb\nc");
+		const newIdx = idx.replace(0, 1, "");
+		expect(newIdx.length).toBe(2);
+		expect(newIdx.findSequence("a")).toBe(-1);
+		expect(newIdx.findSequence("b")).toBe(0);
+		expect(newIdx.findSequence("c")).toBe(1);
+	});
+
+	it("empty replacement at end of index", () => {
+		const idx = HashLineIndex.build("a\nb\nc");
+		const newIdx = idx.replace(2, 3, "");
+		expect(newIdx.length).toBe(2);
+		expect(newIdx.findSequence("a")).toBe(0);
+		expect(newIdx.findSequence("b")).toBe(1);
+		expect(newIdx.findSequence("c")).toBe(-1);
+	});
+
+	it("empty replacement of entire index", () => {
+		const idx = HashLineIndex.build("a\nb\nc");
+		const newIdx = idx.replace(0, 3, "");
+		expect(newIdx.length).toBe(0);
+		expect(newIdx.findSequence("a")).toBe(-1);
+	});
+});
 });
