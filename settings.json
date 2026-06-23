@@ -1,11 +1,11 @@
 {
-  "lastChangelogVersion": "0.79.9",
+  "lastChangelogVersion": "0.79.10",
   "theme": "rosepine-moon",
   "quietStartup": true,
   "enableInstallTelemetry": false,
   "defaultProjectTrust": "always",
   "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-8",
+  "defaultModel": "claude-opus-4-5-20251101",
   "enabledModels": [
     "claude-fable-5",
     "claude-opus-4-8",
@@ -25,7 +25,8 @@
     "npm:@juicesharp/rpiv-workflow",
     "npm:@tintinweb/pi-subagents",
     "npm:@tintinweb/pi-tasks",
-    "npm:@juicesharp/rpiv-advisor"
+    "npm:@juicesharp/rpiv-advisor",
+    "npm:pi-mcp-adapter"
   ],
   "compaction": {
     "enabled": true
