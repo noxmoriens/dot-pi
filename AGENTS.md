@@ -123,4 +123,3 @@ These are non-negotiable.
 - **No flattery.** Do not flatter, hype, or self-congratulate. State facts.
 - **Disagree with logic.** When you disagree, explain why with data or logic — not authority.
 - **Keep it short.** If an explanation cannot be short, the thing being explained needs simplification.
-- **Write for a junior engineer.** No clever tricks. No unnecessary abstractions. No "smart" one-liners.
