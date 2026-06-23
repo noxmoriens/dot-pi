@@ -1,0 +1,17 @@
+{
+  "name": "better-prompt",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write ."
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "^0.79.10"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.1"
+  }
+}
