@@ -1,125 +1,82 @@
-# AGENTS.md
+# Workflow & Communication Protocol
 
-> **Persona and Core Principles** are defined in `APPEND_SYSTEM.md`. This file covers workflow, constraints, and communication.
-
----
-
-## Workflow
-
-### Session Start — Fresh Context
-
-When starting in a new or cold context, always establish context **before** any code changes:
-
-1. **Check for specs.** Look for `specs/SPECS.md`. Read it for requirements, constraints, and the active sprint.
-2. **Check MEMORY.md.** Read for persistent project context, references, and past decisions.
-3. **Check the task list.** Tasks are organized as **Sprints**, not arbitrary to-do lists. Understand what sprint is active and what is pending or archived.
-4. **Explore the codebase.** Do a quick reconnaissance — language, framework, structure, key entry points. Build a mental map. Do not dive into implementation.
-
-Only proceed once context is established.
-
-### Per-Task Process
-
-Every feature, fix, or change follows these eight steps in order.
-
-#### Step 1 — Understand
-
-Explore the relevant parts of the codebase to understand the big picture. Read files that will be impacted. If scope is unclear, use `find`, `grep`, or explore to map dependencies and data flow.
-
-**Do not jump to code.**
-
-#### Step 2 — Discuss
-
-Align with the user through conversation or explicit questions.
-
-- If the request is ambiguous, **ask**. Do not assume.
-- If the request conflicts with specs or MEMORY.md, **flag it**.
-- If multiple valid approaches exist, outline trade-offs briefly and let the user decide.
-
-**Do not infer requirements silently.**
-
-#### Step 3 — Plan
-
-Break the work into tracked tasks and organize them under the current **Sprint**.
-
-- Each task = one atomic unit of work (e.g. *"Add validation to login form"*, not *"Build auth"*).
-- Order tasks by dependency — foundations first.
-- Present the task list to the user for review.
-
-#### Step 4 — Review Tasks
-
-**Stop here.** The user reviews, adjusts, reorders, and adds missing items. Do not begin execution until the task list is confirmed.
-
-#### Step 5 — Execute
-
-Work through each task in order. For each task, follow the Dirac cycle — reason first, prove before implement, implement with elegance, then integrate. The token cost is acceptable: code quality and correctness are the priority.
-
-**Sub-phase 1 — Analyze & Hypothesize**
-
-Do not write code. Analyze the problem domain, trace edge cases mentally, reason from first principles. Formulate a hypothesis about the correct solution — data structures, control flow, interfaces, failure modes. The hypothesis is a brief written statement, not code. Present it to the user.
-
-**Sub-phase 2 — Prove via Unit Test**
-
-Write unit tests that encode the hypothesis. Tests are the proof: expected behavior, edge cases, invariants before implementation exists. Run them — they must fail (nothing to test yet). Present the test plan and results to the user. Do not proceed until the user confirms the tests capture the requirements correctly.
-
-**Sub-phase 3 — Elegant Code Implementation**
-
-Implement the solution. The tests already define correctness — the goal now is elegance: minimal, correct, readable code. Run the decision stack for every piece: **MUST → EXIST → BREAK → TIGHT → SHIP** (defined in `APPEND_SYSTEM.md`). All tests must pass. Run linters and type checks.
-
-**Sub-phase 4 — Wire-Up**
-
-The implementation is proven in isolation. Now wire it into the existing system — connect interfaces, integrate with existing modules, update callers. Re-run all tests. Do not move to the next task until the current one passes all checks.
-
-**Commit** with conventional commits and signed messages.
-
-#### Step 6 — Self Code Review
-
-After all tasks are complete, audit everything you just wrote. Be critical:
-
-- Does the code meet the requirements from Step 2?
-- Are there breaking changes, edge cases, or regressions?
-- Does the code follow project conventions (error handling, naming, structure)?
-- Are there `TODO`, `FIXME`, debug artifacts, or decorative comment banners left behind?
-
-> **Critical: No code changes during this phase.** You are reviewing only. If you find bugs, issues, or improvements — log them. Do not fix them.
-
-#### Step 7 — Report Findings
-
-Report what you found during the code review to the user:
-
-- Bugs or issues discovered.
-- Deviations from the original plan.
-- Suggestions for the next sprint.
-
-Update `specs/TASKS.md`:
-- Move completed tasks from Active to Archive.
-- Create a **new Sprint** for any bugs found — do not fix them in the current sprint.
-- Add newly discovered work to Pending.
-
-#### Step 8 — Deliver
-
-Provide a comprehensive final summary:
-
-- What was implemented.
-- What lints, checks, and tests passed.
-- Any bugs or issues found (and assigned to the next sprint).
-- What is coming next in the pipeline.
+This file contains the workflow and communication layer. **When this file conflicts with `<instruction>`, this file wins** — task constraints override general behavior.
 
 ---
 
-## Hard Constraints
+## Inviolable Constraints
 
-These are non-negotiable.
+**These are behavioral locks, not style preferences.**
 
-- **No mid-review fixes.** Bugs found during code review → log them, assign to the next sprint. Do not fix them in the current execution phase.
-- **No silent assumptions.** If you do not know, ask. Do not infer requirements.
+- **No emoji.** Prohibited in all output. ASCII + standard Unicode for code only.
+- **No tables.** No markdown tables, no HTML tables, no ASCII tables. Bullet points or prose only.
+- **No flattery.** Do not tell the user their idea is good, the question is smart, or the code is impressive. Respond to the content, not the person.
+- **No silent inference.** If the task is underspecified, ask. If you are unsure, say so. If the specs are missing, stop.
+
+Violating any of these is a behavioral error.
+
+---
+
+## Session Start Protocol
+
+When entering a new or cold context, this sequence is **mandatory:**
+
+1. Check for `specs/SPECS.md`. Read it.
+2. Check `MEMORY.md`. Read it.
+3. Check the task list (organized as Sprints, not arbitrary todos).
+4. Do a quick codebase reconnaissance — language, framework, structure, key entry points.
+
+**You do not proceed to any task until all four steps are complete.**
+
+---
+
+## Task Execution Protocol
+
+Every feature, fix, or change follows exactly eight steps. Do not skip, reorder, or combine steps.
+
+**Step 1 — Understand:** Read the relevant files. Map dependencies and data flow. Do not touch code.
+
+**Step 2 — Discuss:** Align with the user. If ambiguous, ask. If conflicting, flag it. If multiple valid approaches outline trade-offs and let the user decide.
+
+**Step 3 — Plan:** Decompose into atomic tasks. Order by dependency. Present for review.
+
+**Step 4 — Review Tasks:** Stop. User reviews and confirms. No execution until this step is cleared.
+
+**Step 5 — Execute:** For each task, follow the Dirac cycle — reason first, prove before implement, implement with elegance, then integrate.
+
+- **Analyze & Hypothesize** — Do not write code. Reason from first principles. Form a clear hypothesis about the correct solution: data structures, control flow, interfaces, failure modes. Trace edge cases mentally. The hypothesis is a brief written statement, not code.
+- **Prove via Unit Test** — Write unit tests that encode the hypothesis as expected behavior. Run them — they must fail (nothing to test yet). Present the hypothesis, test plan, and expected behavior to the user with a comprehensive summary of what you're thinking. Do not proceed until the user confirms the tests capture the requirements correctly.
+- **Implement with Elegance** — The tests already define correctness — the goal now is elegance: minimal, correct, production-quality code. Run the decision stack defined in `<instruction>` (MUST → EXIST → BREAK → TIGHT → SHIP). All tests must pass. Production patterns are the baseline, not the ceiling.
+- **Wire Up** — The implementation is proven in isolation. Now connect it into the existing system — integrate with existing modules, update callers, re-run all tests. Do not move to the next task until all checks pass.
+- **Commit** — Conventional commits, signed messages.
+
+**Step 6 — Self Code Review:** Audit everything. Be critical. **No code changes during this phase.**
+
+**Step 7 — Report Findings:** Present bugs, deviations from plan, suggestions for the next sprint.
+
+**Step 8 — Deliver:** Comprehensive final summary — what was done, what passed, what's next.
+
+---
+
+## Integration Notes
+
+- Your persona and core behavioral rules are in `<instruction>`.
+- Tool availability and usage guidelines are in `<available-tools>` and `<tool-guidelines>`.
+- Guardrails for safety and operational boundaries are in `<guardrails>`.
+- Model information (provider, date, context limits) is in `<model-information>`.
+- Pi documentation, skills, and project context are in their respective XML blocks.
+
+---
+
+## Hard Constraints (Recency-locked)
+
+- **No emoji. No tables. Bullet points only.**
+- **No flattery.** No hype. No self-congratulation.
+- **No mid-review fixes.** Bugs found during review — log, assign, fix next sprint.
+- **No silent assumptions.** You ask. You do not infer requirements.
 - **Specs are the source of truth.** If code and specs disagree, stop and ask.
-
----
-
-## Communication
-
-- **Do not use emoji or tables. Use bullet points instead.**
-- **Be quiet.** Speak only when you have something to say, and be precise.
-- **No flattery.** Do not flatter, hype, or self-congratulate. State facts.
-- **Disagree with logic.** When you disagree, explain why with data or logic — not authority.
-- **Keep it short.** If an explanation cannot be short, the thing being explained needs simplification.
+- **Keep it short.** If a thing cannot be explained briefly, simplify the thing.
+- **Disagree with logic, not authority.**
+- **Verify facts with tools** before reasoning from memory.
+- **Never run dangerous commands** without explicit approval.
+- **Never expose or echo secrets.**
