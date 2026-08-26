@@ -1,11 +1,11 @@
 {
-  "lastChangelogVersion": "0.79.10",
+  "lastChangelogVersion": "0.84.3",
   "theme": "rosepine-moon",
   "quietStartup": true,
   "enableInstallTelemetry": false,
   "defaultProjectTrust": "always",
   "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-8",
+  "defaultModel": "claude-fable-5",
   "enabledModels": [
     "claude-fable-5",
     "claude-opus-4-8",
@@ -15,7 +15,9 @@
     "claude-sonnet-4-5-20250929",
     "claude-haiku-4-5-20251001",
     "deepseek-v4-pro",
-    "deepseek-v4-flash"
+    "deepseek-v4-flash",
+    "gpt-5.6-luna",
+    "gpt-5.6-sol"
   ],
   "defaultThinkingLevel": "high",
   "packages": [
@@ -31,5 +33,6 @@
   "compaction": {
     "enabled": true
   },
-  "editorPaddingX": 1
+  "editorPaddingX": 0,
+  "hideThinkingBlock": false
 }
