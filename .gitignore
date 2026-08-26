@@ -15,6 +15,9 @@ mcp-onboarding.json
 # Project-local pi config (restored by pi)
 .pi/
 
+# MCP OAuth tokens (contains auth credentials)
+mcp-oauth/
+
 # Project memory - session context, past decisions, gotchas
 MEMORY.md
 
