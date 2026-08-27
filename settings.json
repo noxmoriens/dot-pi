@@ -35,5 +35,10 @@
     "enabled": true
   },
   "editorPaddingX": 0,
-  "hideThinkingBlock": false
+  "hideThinkingBlock": false,
+  "tuiMode": "regular",
+  "fullscreenScrollbar": "auto",
+  "fullscreenExitOutput": "transcript",
+  "outputPad": 0,
+  "autocompleteMaxVisible": 5
 }
