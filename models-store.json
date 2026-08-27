@@ -102,7 +102,7 @@
         }
       }
     ],
-    "checkedAt": 1787707849705,
+    "checkedAt": 1787812233354,
     "lastModified": 1787659145000,
     "etag": "W/\"c498073149d3b5ff2cd526408548a964\""
   },
@@ -331,8 +331,8 @@
         }
       },
       {
-        "id": "grok-4.5",
-        "name": "Grok 4.5",
+        "id": "grok-4.6",
+        "name": "Grok 4.6",
         "api": "openai-responses",
         "provider": "opencode-go",
         "baseUrl": "https://opencode.ai/zen/go/v1",
@@ -358,7 +358,7 @@
           "low": "low",
           "medium": "medium",
           "high": "high",
-          "xhigh": null,
+          "xhigh": "xhigh",
           "max": null
         }
       },
@@ -771,9 +771,9 @@
         "maxTokens": 131072
       }
     ],
-    "checkedAt": 1787707849634,
-    "lastModified": 1787571275000,
-    "etag": "W/\"5b05133dff9e8c4b6b73a2000e9cbc6a\""
+    "checkedAt": 1787812233150,
+    "lastModified": 1787740211000,
+    "etag": "W/\"30a10572fb95efd8d75992ce8c1019e2\""
   },
   "anthropic": {
     "models": [
@@ -1148,7 +1148,7 @@
         }
       }
     ],
-    "checkedAt": 1787707849703,
+    "checkedAt": 1787812232829,
     "lastModified": 1787141921000,
     "etag": "W/\"f6c149c048a0e6e85e35ce0a72c1d4ec\""
   },
@@ -1317,7 +1317,7 @@
         "maxTokens": 131072
       }
     ],
-    "checkedAt": 1787707849639,
+    "checkedAt": 1787812232720,
     "lastModified": 1787659179000,
     "etag": "W/\"ffd2322e48bbb708636e5c710c486fd5\""
   },
@@ -2538,7 +2538,7 @@
         }
       }
     ],
-    "checkedAt": 1787716872433,
+    "checkedAt": 1787812232840,
     "lastModified": 1787659161000,
     "etag": "W/\"de4430a471bcb862d1abf6d6e78f60c2\""
   }
