@@ -86,6 +86,23 @@ Rules:
 - One task = one deliverable. If a requirement needs multiple steps, split into multiple TK-NNN entries.
 - Each Active task has a one-line description of what "done" looks like and how to verify.
 
+### Sprint numbering
+
+When the project uses the sprint-style TASKS.md (the specs-driven rule), a Sprint is a label for
+one group of atomic tasks that belong together as a DAG:
+
+- A Sprint exists only in `# Active` — never in Pending, never in Archive.
+- Active may hold several sprints at once (`Sprint 1`, `Sprint 2`, `Sprint 3`, ...), one per group
+  of atomic tasks, numbered in the order the groups are planned.
+- The counter belongs to the current cycle. When every sprint in Active is finished, unpack them
+  into `# Archive` as individual task entries — the tasks are archived, not the sprints.
+- Once Active is empty the counter resets: the next batch of work starts again at `Sprint 1 {name}`.
+  Never continue numbering across the reset — if `Sprint 3` was the last group archived, the next
+  group is `Sprint 1`, not `Sprint 4`.
+- `# Pending` holds named work items (`- {name}` with a `Reason:` line) that are not being worked
+  yet. A pending item becomes a sprint group only when it is promoted into Active.
+- If the project's own rules define a TASKS.md format, that format wins over the TK-NNN sample above.
+
 ## 4. Populate Sections
 
 ### Active
@@ -113,6 +130,8 @@ todo({ op: 'init', items: [
 ]})
 ```
 This bridges the static TASKS.md file to runtime tracking. The `todo` tool is the live execution tracker; TASKS.md is the persistent record.
+
+Tool mapping: pi uses `todo`; Grok/Claude equivalents per the Task Tool Conversion rule. If no task tool exists, skip this step; TASKS.md remains the record.
 
 ---
 

@@ -28,7 +28,7 @@ Scan the project to understand what exists:
 - `specs/SPECS.md` and `specs/TASKS.md` if they exist — constraints and goals
 - Directory structure, config files, source layout
 - Git log (`git log --oneline -20`) for recent context
-- Current session todos via todo tool
+- Current session todos via the environment's task tool (see "Register Todos")
 
 If requirements are vague: ask ONE clarifying question before proceeding.
 
@@ -74,9 +74,9 @@ Rules:
 
 ## 5. Register Todos
 
-Call `todo({ op: 'init', items: [...] })` with one todo per step.
+Register one item per step with the task tool present in this toolset — pi: `todo({ op: 'init', items: [...] })`; Grok/Claude equivalents per the Task Tool Conversion rule. No task tool: skip registration; the presented plan is the tracker.
 
-Each todo:
+Each item:
 - `title`: under 7 words, describes the specific change
 - `description`: file path, action, verify condition
 
@@ -97,6 +97,7 @@ Each todo:
 - If specs/SPECS.md exists, read it first: the constraints there may invalidate your approach.
 - Vague requirements: ask once, do not guess. One targeted question unblocks the plan.
 - Edge cases are not optional: every step must have at least consideration of what could go wrong.
+- Use the task tool that actually exists in the toolset — never call a tool that is not loaded (see Task Tool Conversion rule).
 
 ---
 
@@ -114,5 +115,5 @@ Impacted: N files (N modify, N create, N read)
    Verify: [how to confirm]
    Edge: [what could go wrong]
 
-Todos registered via todo tool.
+Todos registered via the environment's task tool.
 ```

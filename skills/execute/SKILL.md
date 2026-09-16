@@ -24,6 +24,8 @@ Preconditions (stop if not met):
 
 # Steps
 
+Task tool note: the `todo({ op: ... })` calls below are the pi tool name. On other agents use the environment's task tool (Task Tool Conversion rule) — `start` = in-progress, `done` = completed.
+
 ## Per Todo Workflow
 
 ### 1. Define Verification Criteria

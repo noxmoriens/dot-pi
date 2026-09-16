@@ -47,7 +47,7 @@ From TASKS.md, extract:
 
 ## 3. Check Session State
 
-- `todo({ op: 'view' })` — any in-session tasks remaining?
+- Task tool view (pi `todo({ op: 'view' })`; Grok/Claude per Task Tool Conversion rule) — any in-session tasks remaining?
 - `git log --oneline -10` — recent commits
 
 ## 4. Present Summary
