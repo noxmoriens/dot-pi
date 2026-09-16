@@ -1,5 +1,6 @@
 # Secrets - never commit
 models.json
+models-store.json
 auth.json
 
 # Ephemeral data - session history, trust decisions
