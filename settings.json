@@ -1,21 +1,11 @@
 {
-  "lastChangelogVersion": "0.84.3",
+  "lastChangelogVersion": "0.85.1",
   "theme": "rosepine-moon",
   "quietStartup": true,
   "enableInstallTelemetry": false,
   "defaultProjectTrust": "always",
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-fable-5",
   "enabledModels": [
-    "claude-fable-5",
-    "claude-opus-4-8",
-    "claude-opus-4-6",
-    "claude-opus-4-5-20251101",
-    "claude-sonnet-4-6",
-    "claude-sonnet-4-5-20250929",
-    "claude-haiku-4-5-20251001",
-    "deepseek-v4-pro",
-    "deepseek-v4-flash",
+    "gpt-5.5",
     "gpt-5.6-luna",
     "gpt-5.6-sol",
     "gpt-5.6-terra"
@@ -34,11 +24,12 @@
   "compaction": {
     "enabled": true
   },
-  "editorPaddingX": 0,
+  "editorPaddingX": 1,
   "hideThinkingBlock": false,
   "tuiMode": "regular",
   "fullscreenScrollbar": "auto",
   "fullscreenExitOutput": "transcript",
-  "outputPad": 0,
-  "autocompleteMaxVisible": 5
+  "outputPad": 1,
+  "autocompleteMaxVisible": 5,
+  "showCacheMissNotices": true
 }
