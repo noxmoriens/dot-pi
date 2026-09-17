@@ -59,7 +59,36 @@ If scope unclear: use ask to resolve before proceeding.
 
 ## 2. Collect Sources
 
-Use web_search and read (for web URLs) to gather information.
+Use the configured web-search tool, direct source APIs, and the PDF extraction scripts in `scripts/`.
+
+For research involving papers:
+
+1. Search arXiv, Crossref, Semantic Scholar, or OpenAlex as appropriate.
+2. Deduplicate by DOI, arXiv ID, or normalized title.
+3. Prefer the paper's official page or PDF over an aggregator summary.
+4. Record title, authors, date, identifier, URL, and retrieval date.
+5. Compare abstracts and full text before making a substantive claim.
+
+For local PDFs, extract text in bounded chunks instead of loading the entire document into context:
+
+```bash
+python scripts/pdf_to_text.py paper.pdf --offset 0 --limit 12000
+python scripts/pdf_to_text.py paper.pdf --offset 12000 --limit 12000
+python scripts/pdf_to_text.py paper.pdf --offset 0 --limit 80 --lines
+node scripts/pdf_to_text.js paper.pdf --offset 0 --limit 12000
+```
+
+`--offset` and `--limit` are zero-based character positions by default. With `--lines`, they address line numbers. The scripts require the system `pdftotext` command and fail clearly if it is unavailable.
+
+Prefer primary APIs where available:
+
+- arXiv API or built-in arXiv tools for papers and metadata;
+- Crossref API for DOI metadata;
+- Semantic Scholar API for paper discovery and citation context;
+- OpenAlex API for scholarly works, authors, and institutions;
+- official government, standards, vendor, or project APIs for authoritative data.
+
+Use search for discovery, then fetch the original record or document. Never treat an API result as authoritative merely because it is machine-readable.
 
 Categorize sources:
 - Primary: official documents, direct statements, raw data

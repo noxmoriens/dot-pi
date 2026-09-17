@@ -25,3 +25,4 @@ MEMORY.md
 # Installed pi packages (restored via pi install)
 npm/
 git/
+__pycache__/
